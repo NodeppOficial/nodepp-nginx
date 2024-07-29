@@ -1,4 +1,4 @@
-# NODEPP-EXPRESS
+# NODEPP-NGINX
 
 A Simple Reverse Proxy made with NodePP
 
