@@ -3,8 +3,13 @@
 A Simple Reverse Proxy made with NodePP
 
 ## Dependencies
-- **ExpressPP** https://github.com/NodeppOficial/nodepp-express
-- **NodePP**    https://github.com/NodeppOficial/nodepp
+```bash
+# ExpressPP
+    💻: https://github.com/NodeppOficial/nodepp-express
+
+# Nodepp
+    💻: https://github.com/NodeppOficial/nodepp
+```
 
 ## Build & Run
 - 🪟: `g++ -o main main.cpp -I ./include -lz -lws2_32 -lssl -lcrypto ; ./main`
