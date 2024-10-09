@@ -209,7 +209,7 @@ protected:
         hdr["Real-Ip"] = cli.get_peername(); hdr["Host"] = uri.hostname;
 
         if( uri.protocol.to_lower_case() == "https" ){ string_t dir = path::pop( _FILE_ );
-            ssl_t ssl ( path::join(dir,"cert.key"), path::join(dir,"cert.crt") );
+            ssl_t ssl;
             
             tls_t tmp ([=]( https_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
