@@ -5,10 +5,10 @@ A Simple Reverse Proxy made with NodePP
 ## Dependencies
 ```bash
 # ExpressPP
-    💻: https://github.com/NodeppOficial/nodepp-express
+💻: https://github.com/NodeppOficial/nodepp-express
 
 # Nodepp
-    💻: https://github.com/NodeppOficial/nodepp
+💻: https://github.com/NodeppOficial/nodepp
 ```
 
 ## Build & Run
