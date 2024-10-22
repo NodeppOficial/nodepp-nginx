@@ -212,10 +212,9 @@ protected:
             ssl_t ssl;
             
             tls_t tmp ([=]( https_t dpx ){
-                bool b = !dpx.headers["Content-Length"].empty();
-                dpx.write_header( slf->method, pth, slf->get_version(), hdr, b );
+                dpx.write_header( slf->method, pth, slf->get_version(), hdr, 0 );
                 dpx.set_timeout(0); slf->set_timeout(0); slf->done(); 
-                stream::duplex( *slf,dpx );
+                stream::duplex( *slf, dpx );
             }, &ssl );
 
             tmp.onError([=]( except_t err ){
@@ -227,10 +226,9 @@ protected:
         } else {
             
             tcp_t tmp ([=]( http_t dpx ){
-                bool b = !dpx.headers["Content-Length"].empty();
-                dpx.write_header( slf->method, pth, slf->get_version(), hdr, b );
+                dpx.write_header( slf->method, pth, slf->get_version(), hdr, 0 );
                 dpx.set_timeout(0); slf->set_timeout(0); slf->done(); 
-                stream::duplex( *slf,dpx );
+                stream::duplex( *slf, dpx );
             });
 
             tmp.onError([=]( except_t err ){
