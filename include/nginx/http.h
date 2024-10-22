@@ -214,8 +214,7 @@ protected:
             tls_t tmp ([=]( https_t dpx ){
                 bool b = !dpx.headers["Content-Length"].empty();
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr, b );
-                if( !b ){ dpx.write("\r\n"); } dpx.set_timeout(0); 
-                slf->set_timeout(0); slf->done(); 
+                dpx.set_timeout(0); slf->set_timeout(0); slf->done(); 
                 stream::duplex( *slf,dpx );
             }, &ssl );
 
@@ -230,8 +229,7 @@ protected:
             tcp_t tmp ([=]( http_t dpx ){
                 bool b = !dpx.headers["Content-Length"].empty();
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr, b );
-                if( !b ){ dpx.write("\r\n"); } dpx.set_timeout(0); 
-                slf->set_timeout(0); slf->done(); 
+                dpx.set_timeout(0); slf->set_timeout(0); slf->done(); 
                 stream::duplex( *slf,dpx );
             });
 
