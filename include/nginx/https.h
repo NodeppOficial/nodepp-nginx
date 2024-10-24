@@ -209,33 +209,34 @@ protected:
         hdr["Real-Ip"] = cli.get_peername(); hdr["Host"] = uri.hostname;
 
         if( uri.protocol.to_lower_case() == "https" ){ string_t dir = path::pop( _FILE_ );
-            ssl_t ssl;
             
-            tls_t tmp ([=]( https_t dpx ){
+            ssl_t ssl; tls_t tmp ([=]( https_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
-                dpx.set_timeout(0); slf->set_timeout(0); slf->done(); 
-                stream::duplex( *slf, dpx );
+                if( slf->method == "POST" ){ dpx.write("\r\n"); }
+                dpx.set_timeout(0); slf->set_timeout(0);
+                stream::duplex( *slf,dpx );
             }, &ssl );
 
             tmp.onError([=]( except_t err ){
                 slf->status(503).send( (string_t) err );
             });
 
-            tmp.connect( uri.hostname, uri.port );
+            tmp.connect( uri.hostname, uri.port ); slf->done();
             
         } else {
             
             tcp_t tmp ([=]( http_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
-                dpx.set_timeout(0); slf->set_timeout(0); slf->done(); 
-                stream::duplex( *slf, dpx );
+                if( slf->method == "POST" ){ dpx.write("\r\n"); }
+                dpx.set_timeout(0); slf->set_timeout(0);
+                stream::duplex( *slf,dpx );
             });
 
             tmp.onError([=]( except_t err ){
                 slf->status(503).send( (string_t) err );
             });
             
-            tmp.connect( uri.hostname, uri.port );
+            tmp.connect( uri.hostname, uri.port ); slf->done();
             
         }
 
