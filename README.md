@@ -13,7 +13,7 @@ A Simple Reverse Proxy made with NodePP
 
 ## Build & Run
 ```bash
-🪟:`g++ -o main main.cpp -I ./include -lz -lssl -lcrypto -lws2_32 ; ./main`
+🪟: g++ -o main main.cpp -I ./include -lz -lssl -lcrypto -lws2_32 ; ./main
 🐧: g++ -o main main.cpp -I ./include -lz -lssl -lcrypto ; ./main
 ```
 
