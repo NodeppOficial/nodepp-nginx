@@ -120,25 +120,6 @@ protected:
 
     /*.........................................................................*/
 
-    string_t _ssr_( string_t& data ) const noexcept {
-        while( regex::test( data, "<°[^°]+°>" ) ){
-        
-            process::next();
-            auto pttr = regex::match( data, "<°[^°]+°>" );
-            auto name = regex::match( pttr, "[^<°> \n\t]+" );
-
-            if( fs::exists_file( name ) ){ 
-                auto str = stream::await( fs::readable( name ) );
-                    data = regex::replace_all( data, pttr, str );
-            } else {
-                data = regex::replace_all( data, pttr, "file does not exists" );
-            }
-                    
-        }   return data;
-    }
-
-    /*.........................................................................*/
-
     void fssr( express_https_t& cli, string_t cmd, string_t path, object_t args ) const noexcept {
 
         auto pth = regex::replace( cli.path, path, "/" );
@@ -214,7 +195,6 @@ protected:
             
             ssl_t ssl; tls_t tmp ([=]( https_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
-                if( slf->method == "POST" ){ dpx.write("\r\n"); }
                 dpx.set_timeout(0); slf->set_timeout(0);
                 stream::duplex( *slf,dpx );
             }, &ssl );
@@ -229,7 +209,6 @@ protected:
             
             tcp_t tmp ([=]( http_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
-                if( slf->method == "POST" ){ dpx.write("\r\n"); }
                 dpx.set_timeout(0); slf->set_timeout(0);
                 stream::duplex( *slf,dpx );
             });
