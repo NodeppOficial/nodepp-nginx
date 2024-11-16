@@ -144,6 +144,8 @@ protected:
         auto pth = regex::replace( cli.path, path, "/" );
              pth = regex::replace_all( pth, "\\.[.]+/", "" );
 
+		auto cb = _express_::ssr();
+
         auto bsd =!args["path"].has_value() ? "./" :
                    args["path"].as<string_t>() ;
 
@@ -164,30 +166,30 @@ protected:
 
         auto str = fs::readable( dir );
 
-        if ( cli.headers["Range"].empty() == true ){
-             cli.header( "Content-Type",path::mimetype(dir) );
+        if( cli.headers["Range"].empty() == true ){
+            cli.header( "Content-Type", path::mimetype(dir) );
 
             if( regex::test(path::mimetype(dir),"audio|video",true) ) { cli.send(); return; }
-            if( regex::test(path::mimetype(dir),"html",true) && str.size() < CHUNK_SIZE ){
-                auto dta = stream::await( str ); cli.send( _ssr_(dta) );
+            if( regex::test(path::mimetype(dir),"html",true) ){
+                cli.send(); cb( cli, dir );
             } else { 
                 cli.header( "Content-Length", string::to_string(str.size()) );
                 cli.header( "Cache-Control", "public, max-age=604800" );
-                cli.sendStream( str );
+                auto str = fs::readable( dir ); cli.sendStream( str );
             }
 
         } else {
 
-            array_t<string_t> range = regex::match_all(cli.headers["Range"],"\\d+",true);
-             ulong rang[3]; rang[0] = string::to_ulong( range[0] );
-                   rang[1] =min(rang[0]+CHUNK_MB(10),str.size()-1);
-                   rang[2] =min(rang[0]+CHUNK_MB(10),str.size()  );
+            array_t<string_t> range= regex::match_all(cli.headers["Range"],"\\d+",true);
+            ulong rang[3]; rang[0] = string::to_ulong( range[0] );
+                  rang[1] =min(rang[0]+CHUNK_MB(10),str.size()-1);
+                  rang[2] =min(rang[0]+CHUNK_MB(10),str.size()  );
 
             cli.header( "Content-Range", string::format("bytes %lu-%lu/%lu",rang[0],rang[1],str.size()) );
             cli.header( "Content-Type",  path::mimetype(dir) ); cli.header( "Accept-Range", "bytes" ); 
-            cli.header( "Cache-Control", "public, max-age=604800" ); 
+            cli.header( "Cache-Control", "public, max-age=604800" );
 
-            str.set_range( rang[0], rang[2] ); 
+            str.set_range( rang[0], rang[2] );
             cli.status(206).sendStream( str );
 
         }
