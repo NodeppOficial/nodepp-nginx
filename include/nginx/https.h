@@ -88,19 +88,15 @@ protected:
             return; 
         }}
 
-        auto str = fs::readable( dir );
-
         if ( cli.headers["Range"].empty() == true ){
-             cli.header( "Content-Length", string::to_string(str.size()) );
-             cli.header( "Content-Type",path::mimetype(dir) );
-        if ( !regex::test(path::mimetype(dir),"text",true) ){
-             cli.header( "Cache-Control", "public, max-age=604800" );
-        }
 
-        if ( !regex::test(path::mimetype(dir),"audio|video",true) ) 
-           { cli.sendStream( str ); } cli.send();
+            if( regex::test(path::mimetype(dir),"audio|video",true) ){ cli.send(); return; }
+            if( regex::test(path::mimetype(dir),"html",true) ){ cli.render(dir); } else { 
+                cli.header( "Cache-Control", "public, max-age=604800" );
+			    cli.SendFile( dir );
+            }
 
-        } else {
+        } else { auto str = fs::readable( dir );
 
             array_t<string_t> range = regex::match_all(cli.headers["Range"],"\\d+",true);
              ulong rang[3]; rang[0] = string::to_ulong( range[0] );
@@ -112,61 +108,6 @@ protected:
             cli.header( "Cache-Control", "public, max-age=604800" ); 
 
             str.set_range( rang[0], rang[2] ); 
-            cli.status(206).sendStream( str );
-
-        }
-
-    }
-
-    /*.........................................................................*/
-
-    void fssr( express_https_t& cli, string_t cmd, string_t path, object_t args ) const noexcept {
-
-        auto pth = regex::replace( cli.path, path, "/" );
-             pth = regex::replace_all( pth, "\\.[.]+/", "" );
-
-        auto bsd =!args["path"].has_value() ? "./" :
-                   args["path"].as<string_t>() ;
-
-        auto dir = pth.empty() ? path::join( bsd, "" ) :
-                                 path::join( bsd,pth ) ;
-
-        if ( dir.empty() ){ dir = path::join( bsd, "index.html" ); }
-        if ( dir[dir.last()] == '/' ){ dir += "index.html"; }
-
-        if( fs::exists_file(dir+".html") == true ){ dir += ".html"; }
-        if( fs::exists_file(dir) == false || dir == bsd ){
-        if( fs::exists_file( path::join( bsd, "404.html" ) )){
-            dir = path::join( bsd, "404.html" ); cli.status(404);
-        } else { 
-            cli.status(404).send("Oops 404 Error"); 
-            return; 
-        }}
-
-        auto str = fs::readable( dir );
-
-        if( cli.headers["Range"].empty() == true ){
-            cli.header( "Content-Type", path::mimetype(dir) );
-
-            if( regex::test(path::mimetype(dir),"audio|video",true) ) { cli.send(); return; }
-            if( regex::test(path::mimetype(dir),"html",true) ){ cli.render( dir ); } else { 
-                cli.header( "Content-Length", string::to_string(str.size()) );
-                cli.header( "Cache-Control", "public, max-age=604800" );
-                cli.sendStream( str );
-            }
-
-        } else {
-
-            array_t<string_t> range= regex::match_all(cli.headers["Range"],"\\d+",true);
-            ulong rang[3]; rang[0] = string::to_ulong( range[0] );
-                  rang[1] =min(rang[0]+CHUNK_MB(10),str.size()-1);
-                  rang[2] =min(rang[0]+CHUNK_MB(10),str.size()  );
-
-            cli.header( "Content-Range", string::format("bytes %lu-%lu/%lu",rang[0],rang[1],str.size()) );
-            cli.header( "Content-Type",  path::mimetype(dir) ); cli.header( "Accept-Range", "bytes" ); 
-            cli.header( "Cache-Control", "public, max-age=604800" );
-
-            str.set_range( rang[0], rang[2] );
             cli.status(206).sendStream( str );
 
         }
@@ -233,8 +174,7 @@ protected:
             if( n["method"].has_value() && !regex::test( cli.method, n["method"].as<string_t>() ) )
               { return; }
 
-              if( cmd.to_lower_case() == "fssr" ){ self->fssr( cli, cmd, path, n ); }
-            elif( cmd.to_lower_case() == "file" ){ self->file( cli, cmd, path, n ); }
+              if( cmd.to_lower_case() == "file" ){ self->file( cli, cmd, path, n ); }
             elif( cmd.to_lower_case() == "pipe" ){ self->pipe( cli, cmd, path, n ); }
             elif( cmd.to_lower_case() == "move" ){
                 auto href =!n["href"].has_value() ? "./" :  
