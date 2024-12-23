@@ -125,8 +125,6 @@ protected:
         auto pth = regex::replace( cli.path, path, "/" );
              pth = regex::replace_all( pth, "\\.[.]+/", "" );
 
-		auto cb = _express_::ssr();
-
         auto bsd =!args["path"].has_value() ? "./" :
                    args["path"].as<string_t>() ;
 
@@ -136,24 +134,20 @@ protected:
         if ( dir.empty() ){ dir = path::join( bsd, "index.html" ); }
         if ( dir[dir.last()] == '/' ){ dir += "index.html"; }
 
-        if( fs::exists_file(dir+".html") == true ){ dir += ".html"; }
-        if( fs::exists_file(dir) == false || dir == bsd ){
-        if( fs::exists_file( path::join( bsd, "404.html" ) )){
-            dir = path::join( bsd, "404.html" ); cli.status(404);
-        } else { 
-            cli.status(404).send("Oops 404 Error"); 
-            return; 
-        }}
+            if( regex::test(path::mimetype(dir),"audio|video",true) ){ cli.send(); return; }
+            if( regex::test(path::mimetype(dir),"html",true) ){ cli.render( dir ); } else { 
+                cli.header( "Content-Length", string::to_string(str.size()) );
+                cli.header( "Cache-Control", "public, max-age=604800" );
+                cli.sendStream( str );
+            }
 
         auto str = fs::readable( dir );
 
         if( cli.headers["Range"].empty() == true ){
             cli.header( "Content-Type", path::mimetype(dir) );
 
-            if( regex::test(path::mimetype(dir),"audio|video",true) ) { cli.send(); return; }
-            if( regex::test(path::mimetype(dir),"html",true) ){
-                cli.send(); cb( cli, dir );
-            } else { 
+            if( regex::test(path::mimetype(dir),"audio|video",true) ){ cli.send(); return; }
+            if( regex::test(path::mimetype(dir),"html",true) ){ cli.render( dir ); } else { 
                 cli.header( "Content-Length", string::to_string(str.size()) );
                 cli.header( "Cache-Control", "public, max-age=604800" );
                 cli.sendStream( str );
