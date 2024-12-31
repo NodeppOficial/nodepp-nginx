@@ -126,6 +126,7 @@ protected:
         auto slf = type::bind( cli );
         auto hdr = cli.headers;
 
+        hdr["params"]  = query::format( cli.params );
         hdr["Count"]   = string::to_string( get_count( cli.get_peername() ) );
         hdr["Real-Ip"] = cli.get_peername(); hdr["Host"] = uri.hostname;
 
@@ -133,7 +134,8 @@ protected:
             
             ssl_t ssl; tls_t tmp ([=]( https_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
-                dpx.set_timeout(0); slf->set_timeout(0);
+                dpx .set_timeout( args["timeout"].as<uint>() ); 
+                slf->set_timeout( args["timeout"].as<uint>() );
                 stream::duplex( *slf,dpx );
             }, &ssl );
 
@@ -147,7 +149,8 @@ protected:
             
             tcp_t tmp ([=]( http_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
-                dpx.set_timeout(0); slf->set_timeout(0);
+                dpx .set_timeout( args["timeout"].as<uint>() ); 
+                slf->set_timeout( args["timeout"].as<uint>() );
                 stream::duplex( *slf,dpx );
             });
 
@@ -171,8 +174,9 @@ protected:
                 cli.status(429).send("too many requests"); return; 
             }
 
+            if(!n["timeout"].has_value() ){ n["timeout"] = 0; }
             if( n["timeout"].has_value() ){ cli.set_timeout(n["timeout"].as<uint>()); }
-            if( n["method"].has_value() && !regex::test( cli.method, n["method"].as<string_t>() ) )
+            if( n["method"] .has_value() && !regex::test( cli.method, n["method"].as<string_t>() ) )
               { return; }
 
               if( cmd.to_lower_case() == "file" ){ self->file( cli, cmd, path, n ); }
