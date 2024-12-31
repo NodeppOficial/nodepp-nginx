@@ -122,13 +122,14 @@ protected:
         auto uri = url::parse( args["href"].as<string_t>() );
         auto pth = regex::replace( cli.path, path, "/" );
              pth = path::join( uri.path, pth );
+             pth+= cli.search;
         auto slf = type::bind( cli );
         auto hdr = cli.headers;
 
         hdr["Count"]   = string::to_string( get_count( cli.get_peername() ) );
         hdr["Real-Ip"] = cli.get_peername(); hdr["Host"] = uri.hostname;
 
-        if( uri.protocol.to_lower_case() == "https" ){ string_t dir = path::pop( _FILE_ );
+        if( uri.protocol.to_lower_case() == "https" ){
             
             ssl_t ssl; tls_t tmp ([=]( https_t dpx ){
                 dpx.write_header( slf->method, pth, slf->get_version(), hdr );
